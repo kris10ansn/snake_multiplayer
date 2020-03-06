@@ -1,0 +1,6 @@
+{
+	"restartable": "rs",
+	"watch": ["server/"],
+	"ext": "js",
+	"exec": "node server/index.js"
+}
