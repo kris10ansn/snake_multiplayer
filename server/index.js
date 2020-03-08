@@ -32,6 +32,20 @@ server.on("connection", connection => {
 			session.broadcast(data, it => it !== client);
 			client.state[data.name] = data.value;
 		}
+
+		if (data.type === "remove-apple") {
+			let index = null;
+
+			session.apples.forEach((apple, i) => {
+				if (apple.x === data.apple.x && apple.y === data.apple.y) {
+					index = i;
+				}
+			});
+
+			session.apples.splice(index, 1);
+
+			session.broadcast(data, it => it !== client);
+		}
 	});
 
 	connection.on("close", () => {

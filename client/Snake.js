@@ -1,6 +1,7 @@
-import { round, abs } from "./util.js";
+import { abs } from "./util.js";
 import { Vec2 } from "./Vector.js";
 import EventEmitter from "./EventEmitter.js";
+import { loadImage } from "./loaders.js";
 
 export default class Snake {
 	constructor(id, scale) {
@@ -68,6 +69,67 @@ export default class Snake {
 				this.scale
 			);
 		});
+
+		if (this.body.length > 0) {
+			const prevAlpha = ctx.globalAlpha;
+			const { x, y } = this.head;
+
+			ctx.globalAlpha = 0.25;
+			ctx.fillStyle = "black";
+			ctx.fillRect(
+				x * this.scale,
+				y * this.scale,
+				this.scale,
+				this.scale
+			);
+
+			ctx.globalAlpha = prevAlpha;
+		}
+	}
+
+	collides({ apple, snake, self = false }) {
+		if (this.body.length === 0) {
+			return false;
+		}
+
+		if (apple) {
+			return this.head.x === apple.x && this.head.y === apple.y;
+		}
+
+		if (snake) {
+			for (const i in snake.body) {
+				const part = snake.body[i];
+
+				if (self && i < 3) {
+					continue;
+				}
+
+				if (this.head.x === part.x && this.head.y === part.y) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	extend() {
+		const lastIdx = this.body.length - 1;
+		const last = this.body[lastIdx];
+
+		if (this.body.length === 1) {
+			this.body.push(last.sub(this.vel));
+		} else {
+			const secondLast = this.body[lastIdx - 1];
+			const lastVel = secondLast.sub(last);
+
+			this.body.push(last.sub(lastVel));
+		}
+	}
+
+	die() {
+		this.body.length = 0;
+		this.events.emit("body", this.body);
 	}
 
 	dir(x, y) {
