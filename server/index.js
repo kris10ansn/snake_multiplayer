@@ -1,7 +1,10 @@
-const { Server } = require("ws");
 const Session = require("./Session");
 const Client = require("./Client");
+
 const { round, random } = Math;
+
+const express = require("express");
+const createSocket = require("express-ws");
 
 function generateId(length = 6, chars = "abcdefghjkmnopqrstuvwxyz1234567890") {
 	return Array(length)
@@ -14,18 +17,20 @@ function createClient(connection, id = generateId()) {
 	return new Client(connection, id);
 }
 
-const server = new Server({ port: 8001 });
+const app = express();
+const socket = createSocket(app);
+
 const session = new Session();
 
-console.log("Server up and running!");
+app.use(express.static("public"));
 
-server.on("connection", connection => {
-	console.log("Connection opened");
+app.ws("/", (ws, req) => {
+	console.log("Connection Established");
 
-	const client = createClient(connection);
+	const client = createClient(ws);
 	session.join(client);
 
-	connection.on("message", msg => {
+	ws.on("message", msg => {
 		const data = JSON.parse(msg);
 
 		if (data.type === "state-update") {
@@ -48,8 +53,10 @@ server.on("connection", connection => {
 		}
 	});
 
-	connection.on("close", () => {
+	ws.on("close", () => {
 		session.leave(client);
 		console.log("Connection closed");
 	});
 });
+
+app.listen(8001);
