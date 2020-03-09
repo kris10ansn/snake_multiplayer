@@ -1,4 +1,4 @@
-import { abs } from "./util.js";
+import { abs, fixed, round, floor } from "./util.js";
 import { Vec2 } from "./Vector.js";
 import EventEmitter from "./EventEmitter.js";
 import { loadImage } from "./loaders.js";
@@ -7,23 +7,35 @@ export default class Snake {
 	constructor(id, scale) {
 		this.id = id;
 
-		this.step = 17;
 		this.scale = scale;
+		this.step = 11;
+
+		this.dead = false;
+		this.deadTime = 0;
 
 		this.vel = new Vec2(0, 0);
 		this.nextVel = new Vec2(this.vel);
 
-		this.inputs = [];
-
 		this.events = new EventEmitter();
-
+		this.inputs = [];
 		this.body = [];
 	}
 
 	update(accumulated, tick) {
+		if (this.dead) {
+			this.deadTime += accumulated;
+
+			if (this.deadTime > 2.16 && this.body.length > 0) {
+				this.body.length = 0;
+				this.events.emit("body", this.body);
+			}
+
+			return;
+		}
+
 		if (tick % this.step === 0) {
-			// Only recent inputs (less than .5 sconds ago)
-			this.inputs = this.inputs.filter(it => Date.now() - it.time < 500);
+			// Only recent inputs (less than .3 sconds ago)
+			this.inputs = this.inputs.filter(it => Date.now() - it.time < 300);
 
 			const still =
 				this.vel.array().reduce((a, b) => abs(a) + abs(b)) === 0;
@@ -61,6 +73,11 @@ export default class Snake {
 
 	render(ctx, color) {
 		ctx.fillStyle = color;
+
+		if (this.dead) {
+			ctx.fillStyle = floor(this.deadTime * 2) % 2 === 0 ? "red" : color;
+		}
+
 		this.body.forEach(({ x, y }) => {
 			ctx.fillRect(
 				x * this.scale,
@@ -128,8 +145,11 @@ export default class Snake {
 	}
 
 	die() {
-		this.body.length = 0;
-		this.events.emit("body", this.body);
+		if (!this.dead) {
+			this.deadTime = 0;
+			this.dead = true;
+			this.events.emit("body", []);
+		}
 	}
 
 	dir(x, y) {
