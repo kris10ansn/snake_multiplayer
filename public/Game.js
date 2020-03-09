@@ -20,7 +20,6 @@ export default class Game {
 		const [x, y] = [floor(random() * size), floor(random() * size)];
 
 		this.player.body.push(new Vec2(x, y));
-		this.player.body.push(new Vec2(x - 1, y));
 
 		this.peers = new Set();
 		this.apples = new Set(); // Set<Apple>
@@ -55,6 +54,11 @@ export default class Game {
 			this.player.die();
 		}
 
+		const { x, y } = this.player.head || { x: null, y: null };
+		if (x < 0 || x >= this.size || y < 0 || y >= this.size) {
+			this.player.die();
+		}
+
 		this.apples.forEach(apple => {
 			if (this.player.collides({ apple })) {
 				this.jobs.add(() => this.removeApple(apple));
@@ -75,8 +79,8 @@ export default class Game {
 
 		this.apples.forEach(it => it.render(this.ctx, "indigo"));
 
-		this.player.render(this.ctx, "cyan");
 		this.peers.forEach(it => it.render(this.ctx, "magenta"));
+		this.player.render(this.ctx, "cyan");
 	}
 
 	addPeers(...peers) {
