@@ -2,16 +2,17 @@
 	"name": "snake_multiplayer",
 	"version": "1.0.0",
 	"description": "",
-	"main": "index.js",
 	"scripts": {
 		"watch": "nodemon --config nodemon.json",
-		"live-server": "live-server --port=8000 client/",
+		"live-server": "live-server --port=8000 public/",
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
+		"express": "^4.17.1",
+		"express-ws": "^4.0.0",
 		"ws": "^7.2.1"
 	}
 }
